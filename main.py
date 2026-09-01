@@ -14,6 +14,9 @@ app = Flask(__name__)
 def ping():
     return 'pong'
 
+@app.route('/boom')
+def boom():
+    raise Exception('test error for Bugsink')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))

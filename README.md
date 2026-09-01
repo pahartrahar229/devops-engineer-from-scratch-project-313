@@ -1,38 +1,30 @@
-# Деплой приложения на PaaS (Devops)
+# Ping App
 
-[![hexlet-check](https://github.com/pahartrahar229/devops-engineer-from-scratch-project-313/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/pahartrahar229/devops-engineer-from-scratch-project-313/actions)
-
-Создайте и задеплойте веб-приложение, подключите базу данных и настройке мониторинг с алертингом
-
-Учебный проект Хекслета: https://ru.hexlet.io/programs/devops-engineer-from-scratch
-
-
-## Стек
-
-- Python
+Минимальное веб-приложение на Flask с одним маршрутом `/ping`.
 
 ## Установка
 
-<!-- Опишите установку: клонирование, зависимости, переменные окружения -->
-
 ```bash
-git clone https://github.com/pahartrahar229/devops-engineer-from-scratch-project-313.git
-cd devops-engineer-from-scratch-project-313
+make install
 ```
 
-## Использование
+## Запуск
 
-<!-- Добавьте примеры запуска и запись asciinema — именно это смотрит работодатель -->
+```bash
+make run
+```
 
----
+Приложение запустится на порту `8080`.
 
-<details>
-<summary>Автоматические тесты Хекслета</summary>
+## Проверка
 
-Тесты запускаются на каждый коммит. За запуск отвечает файл `.github/workflows/hexlet-check.yml` — не удаляйте и не переименовывайте ни его, ни репозиторий.
+```bash
+curl http://localhost:8080/ping
+# pong
+```
 
-</details>
+## Разработка
 
-## О Хекслете
-
-[Хекслет](https://ru.hexlet.io/) — школа программирования: авторские программы обучения с практикой, поддержкой наставников и реальными проектами, которые остаются в резюме. Этот репозиторий — один из таких проектов.
+```bash
+make lint    # проверка стиля кода (ruff)
+```

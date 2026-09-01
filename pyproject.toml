@@ -9,6 +9,8 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "flask>=3.0.0",
+    "gunicorn>=23.0.0",
+    "sentry-sdk[flask]>=2.0.0",
 ]
 
 [tool.uv]

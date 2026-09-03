@@ -11,15 +11,25 @@ def normalize_database_url(url):
     return url
 
 
-DATABASE_URL = normalize_database_url(
-    os.environ.get('DATABASE_URL', 'sqlite:///./app.db')
-)
+raw_database_url = os.environ.get('DATABASE_URL', '').strip()
+if not raw_database_url:
+    raw_database_url = 'sqlite:///./app.db'
+
+DATABASE_URL = normalize_database_url(raw_database_url)
 
 connect_args = (
     {'check_same_thread': False} if DATABASE_URL.startswith('sqlite') else {}
 )
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+try:
+    engine = create_engine(DATABASE_URL, connect_args=connect_args)
+except Exception as error:
+    raise RuntimeError(
+        f"Failed to create database engine from DATABASE_URL "
+        f"(value after normalization: {DATABASE_URL!r}). "
+        f"Check that the DATABASE_URL environment variable is set "
+        f"correctly. Original error: {error}"
+    ) from error
 
 
 def create_db_and_tables():

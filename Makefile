@@ -2,7 +2,7 @@ install:
 	uv sync
 
 run:
-	uv run flask --app main run --port 8080
+	uv run uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 
 test:
 	uv run pytest

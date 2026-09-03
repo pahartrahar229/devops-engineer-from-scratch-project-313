@@ -15,4 +15,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8080
 
-CMD gunicorn --bind 0.0.0.0:${PORT:-8080} main:app
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}

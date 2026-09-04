@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 import sentry_sdk
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import create_db_and_tables
 from app.routers import links, redirect
@@ -19,6 +20,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title='Link Shortener', lifespan=lifespan)
+
+allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS', 'http://localhost:5173'
+    ).split(',')
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+    expose_headers=['Content-Range'],
+)
 
 app.include_router(links.router)
 app.include_router(redirect.router)

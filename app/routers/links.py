@@ -1,6 +1,8 @@
+import json
 import os
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
@@ -11,6 +13,11 @@ from app.schemas import LinkCreate, LinkRead, LinkUpdate
 router = APIRouter(prefix='/api/links', tags=['links'])
 
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8080')
+
+RESOURCE_NAME = 'links'
+INVALID_RANGE_DETAIL = (
+    'Invalid range parameter, expected format: [start,end]'
+)
 
 
 def build_short_url(short_name: str) -> str:
@@ -34,9 +41,45 @@ def get_link_or_404(session: Session, link_id: int):
     return link
 
 
+def parse_range(range_param: str):
+    try:
+        parsed = json.loads(range_param)
+        start, end = int(parsed[0]), int(parsed[1])
+    except (TypeError, ValueError, IndexError, json.JSONDecodeError):
+        raise HTTPException(
+            status_code=422, detail=INVALID_RANGE_DETAIL
+        )
+
+    if start < 0 or end < start:
+        raise HTTPException(
+            status_code=422, detail=INVALID_RANGE_DETAIL
+        )
+
+    return start, end
+
+
 @router.get('', response_model=list[LinkRead])
-def list_links(session: Session = Depends(get_session)):
-    links = crud.get_links(session)
+def list_links(
+    response: Response,
+    range: Optional[str] = Query(default=None),
+    session: Session = Depends(get_session),
+):
+    total = crud.count_links(session)
+
+    if range is None:
+        links = crud.get_links(session)
+        return [to_read_schema(link) for link in links]
+
+    start, end = parse_range(range)
+    limit = end - start
+    links = crud.get_links_range(session, start, limit)
+
+    actual_end = min(end, total)
+    response.headers['Content-Range'] = (
+        f'{RESOURCE_NAME} {start}-{actual_end}/{total}'
+    )
+    response.headers['Accept-Ranges'] = RESOURCE_NAME
+
     return [to_read_schema(link) for link in links]
 
 

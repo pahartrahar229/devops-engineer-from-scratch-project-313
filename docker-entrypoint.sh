@@ -7,7 +7,7 @@ envsubst '${PORT}' \
     < /etc/nginx/templates/default.conf.template \
     > /etc/nginx/conf.d/default.conf
 
-uvicorn main:app --host 127.0.0.1 --port 8080 &
+uvicorn main:app --host 127.0.0.1 --port 8001 &
 BACKEND_PID=$!
 
 nginx -g 'daemon off;' &

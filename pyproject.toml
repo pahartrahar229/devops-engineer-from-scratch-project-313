@@ -1,5 +1,5 @@
 [project]
-name = "devops-engineer-from-scratch-project-313"
+name = "hexlet-code"
 version = "0.1.0"
 description = "A minimal Flask web application with a /ping endpoint"
 readme = "README.md"

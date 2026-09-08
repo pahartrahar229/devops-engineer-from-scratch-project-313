@@ -12,8 +12,21 @@ wheels/
 # Node.js
 node_modules/
 
+# Frontend build output (copied into the Docker image at build time)
+public/
+
 # Ruff
 .ruff_cache/
+
+# Local database
+*.db
+app.db
+
+# Leftover project scaffolding
+src/
+
+# macOS
+.DS_Store
 
 # IDE
 .idea/

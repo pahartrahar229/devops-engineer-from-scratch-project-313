@@ -3,7 +3,7 @@
 [![CI](https://github.com/pahartrahar229/devops-engineer-from-scratch-project-313/actions/workflows/ci.yml/badge.svg)](https://github.com/pahartrahar229/devops-engineer-from-scratch-project-313/actions)
 
 Веб-приложение на FastAPI: сервис сокращения ссылок (CRUD) с базой данных
-PostgreSQL и мониторингом ошибок через Bugsink.
+PostgreSQL, веб-интерфейсом и мониторингом ошибок через Bugsink.
 
 ## Установка
 
@@ -11,30 +11,41 @@ PostgreSQL и мониторингом ошибок через Bugsink.
 make install
 ```
 
+Устанавливает и зависимости бэкенда (`uv sync`), и фронтенда (`npm install`).
+
 ## Переменные окружения
 
-| Переменная      | Назначение                                              | Пример                                                        |
-|-----------------|----------------------------------------------------------|----------------------------------------------------------------|
-| `PORT`          | Порт, на котором стартует приложение                    | `8080`                                                          |
-| `DATABASE_URL`  | Строка подключения к PostgreSQL                          | `postgres://user:pass@host:5432/db?sslmode=disable`             |
-| `BASE_URL`      | Базовый адрес для формирования `short_url`                | `https://myapp.onrender.com`                                    |
-| `SENTRY_DSN`    | DSN проекта в Bugsink (необязательно)                     | `https://xxx@bugsink.example.com/1`                              |
+| Переменная             | Назначение                                    | Пример                                              |
+|-------------------------|------------------------------------------------|-------------------------------------------------------|
+| `PORT`                  | Публичный порт (слушает nginx)                | `80`                                                    |
+| `DATABASE_URL`          | Строка подключения к PostgreSQL                | `postgres://user:pass@host:5432/db?sslmode=disable`      |
+| `BASE_URL`               | Базовый адрес для формирования `short_url`      | `https://myapp.onrender.com`                              |
+| `CORS_ALLOWED_ORIGINS`   | Разрешённые Origin для CORS (через запятую)     | `http://localhost:5173`                                     |
+| `SENTRY_DSN`             | DSN проекта в Bugsink (необязательно)            | `https://xxx@bugsink.example.com/1`                           |
 
 Для локальной разработки можно создать файл `.env` (загружается через
 `python-dotenv`).
 
-## Запуск
+## Локальный запуск
+
+Только бэкенд:
 
 ```bash
 make run
 ```
 
-Приложение запустится на порту `8080`. Таблицы в базе данных создаются
-автоматически при старте приложения.
+Бэкенд и фронтенд одновременно (для разработки UI):
+
+```bash
+make dev
+```
+
+Бэкенд — `http://localhost:8080`, фронтенд — `http://localhost:5173`.
 
 ## API
 
-- `GET /api/links` — список всех ссылок
+- `GET /api/links` — список ссылок, поддерживает пагинацию через
+  `?range=[start,end]` (заголовок ответа `Content-Range`)
 - `POST /api/links` — создать ссылку
 - `GET /api/links/{id}` — получить ссылку по id
 - `PUT /api/links/{id}` — обновить ссылку
@@ -47,17 +58,6 @@ make run
 
 Интерактивная документация доступна на `/docs` (Swagger UI).
 
-## Проверка
-
-```bash
-curl http://localhost:8080/ping
-# "pong"
-
-curl -X POST http://localhost:8080/api/links \
-  -H "Content-Type: application/json" \
-  -d '{"original_url": "https://example.com", "short_name": "exmpl"}'
-```
-
 ## Разработка
 
 ```bash
@@ -65,23 +65,25 @@ make lint    # проверка стиля кода (ruff)
 make test    # запуск тестов (pytest)
 ```
 
-Тесты используют изолированную in-memory SQLite-базу, реальный PostgreSQL
-для их запуска не требуется.
+Тесты лежат в `tests/` и используют изолированную in-memory SQLite-базу,
+реальный PostgreSQL для их запуска не требуется.
 
 ## Деплой
 
-Приложение развёрнуто на [Render](https://render.com/):
+Приложение развёрнуто на [Render](https://render.com/) единым контейнером:
+Nginx раздаёт статику фронтенда и проксирует `/api/*` и `/r/*` на backend.
 
-🔗 **[https://devops-engineer-from-scratch-project-313.onrender.com](https://devops-engineer-from-scratch-project-313.onrender.com)**
+🔗 **[https://devops-engineer-from-scratch-project-313-hlm4.onrender.com](https://devops-engineer-from-scratch-project-313-hlm4.onrender.com)**
 
 ### Настройка на Render
 
-1. **PostgreSQL**: New → PostgreSQL → создать базу, скопировать `Internal Database URL`
+1. **PostgreSQL**: New → PostgreSQL → создать базу, скопировать
+   Internal Database URL
 2. **Web Service**: New → Web Service → подключить репозиторий
    - Language: **Docker**
    - Instance Type: **Free**
    - Переменные окружения:
-     - `PORT=8080`
+     - `PORT=80`
      - `DATABASE_URL` — Internal Database URL из шага 1
      - `BASE_URL` — публичный адрес сервиса на Render
      - `SENTRY_DSN` — DSN проекта в Bugsink (если подключён мониторинг)
@@ -99,8 +101,8 @@ Render автоматически обслуживает сервис по HTTPS
 
 ```bash
 docker build -t link-shortener .
-docker run -p 8080:8080 \
-  -e PORT=8080 \
+docker run -p 8080:80 \
+  -e PORT=80 \
   -e DATABASE_URL="postgres://user:pass@host:5432/db" \
   -e BASE_URL="http://localhost:8080" \
   link-shortener

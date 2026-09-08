@@ -7,4 +7,7 @@ __pycache__/
 .pytest_cache/
 node_modules/
 public/
+tests/
+app.db
+.DS_Store
 README.md
